@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mahyar NFC</string>
+    <string name="nfc_service_description">اشتراک‌گذاری پروفایل Mahyar NFC</string>
+    <string name="nfc_aid_group">پروفایل دیجیتال Mahyar NFC</string>
+</resources>
