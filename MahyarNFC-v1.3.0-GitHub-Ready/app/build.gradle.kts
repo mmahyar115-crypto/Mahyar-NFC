@@ -4,13 +4,13 @@ plugins {
 
 android {
     namespace = "com.mahweb.mahyarnfc"
-    compileSdk = 37
+    compileSdk = 36
     buildToolsVersion = "36.0.0"
 
     defaultConfig {
         applicationId = "com.mahweb.mahyarnfc"
         minSdk = 26
-        targetSdk = 37
+        targetSdk = 36
         versionCode = 3
         versionName = "1.3.0"
     }
