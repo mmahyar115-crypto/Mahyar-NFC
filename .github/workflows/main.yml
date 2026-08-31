@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Mahyar NFC Universal APK
 
 on:
   push:
@@ -11,31 +11,39 @@ permissions:
 
 jobs:
   build:
-    name: Build Mahyar NFC v2
+    name: Test and build Mahyar NFC v3 Universal
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
     defaults:
       run:
-        working-directory: MahyarNFC-v2.0.0-GitHub-Ready
+        working-directory: MahyarNFC-v3.0.0-GitHub-Ready
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Verify v2 repository layout
-        shell: bash
-        run: |
-          test -f settings.gradle.kts
-          test -f build.gradle.kts
-          test -f app/build.gradle.kts
-          test -f app/src/main/AndroidManifest.xml
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
+
+      - name: Run universal protocol tests
+        shell: bash
+        run: |
+          python3 scripts/run_logic_tests.py
+          python3 scripts/run_nfc_state_tests.py
+          python3 scripts/run_universal_payload_tests.py
+          python3 scripts/run_type4_tests.py
+          python3 scripts/verify_ui_contract.py
+          python3 scripts/verify_main_contract.py
+          python3 scripts/verify_send_contract.py
+          python3 scripts/verify_receive_contract.py
+          python3 scripts/verify_universal_hce_contract.py
+          python3 scripts/verify_universal_send_contract.py
+          python3 scripts/verify_card_bridge.py
+          python3 scripts/verify_project.py
 
       - name: Set up Gradle 9.5
         uses: gradle/actions/setup-gradle@v4
@@ -46,25 +54,22 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install Android SDK packages
-        shell: bash
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
-      - name: Build v2 debug APK
-        shell: bash
+      - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug --stacktrace
 
-      - name: Verify v2 APK
-        shell: bash
+      - name: Verify APK
         run: |
           test -s app/build/outputs/apk/debug/app-debug.apk
           sha256sum app/build/outputs/apk/debug/app-debug.apk | tee app/build/outputs/apk/debug/app-debug.apk.sha256
 
-      - name: Upload v2 APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: MahyarNFC-v2.0.0-debug-apk
+          name: MahyarNFC-v3.0.0-universal-debug-apk
           path: |
-            MahyarNFC-v2.0.0-GitHub-Ready/app/build/outputs/apk/debug/app-debug.apk
-            MahyarNFC-v2.0.0-GitHub-Ready/app/build/outputs/apk/debug/app-debug.apk.sha256
+            MahyarNFC-v3.0.0-GitHub-Ready/app/build/outputs/apk/debug/app-debug.apk
+            MahyarNFC-v3.0.0-GitHub-Ready/app/build/outputs/apk/debug/app-debug.apk.sha256
           if-no-files-found: error
           retention-days: 14
