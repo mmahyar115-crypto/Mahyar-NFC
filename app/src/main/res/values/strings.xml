@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mahyar NFC</string>
+    <string name="nfc_service_description">ارسال Universal کارت Mahyar NFC برای Android و iPhone</string>
+    <string name="nfc_aid_group">Mahyar NFC Universal</string>
+</resources>

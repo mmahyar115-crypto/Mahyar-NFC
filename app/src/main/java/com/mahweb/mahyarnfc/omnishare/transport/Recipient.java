@@ -1,0 +1,3 @@
+package com.mahweb.mahyarnfc.omnishare.transport;
+import com.mahweb.mahyarnfc.omnishare.TransportKind; import com.mahweb.mahyarnfc.omnishare.trust.RelationshipState; import java.util.*;
+public final class Recipient { public final String deviceId,fingerprint,alias; public final RelationshipState relationship; public final EnumSet<TransportKind> transports; public final Map<String,String> metadata; public Recipient(String id,String fp,String a,RelationshipState r,EnumSet<TransportKind> t,Map<String,String> m){deviceId=id;fingerprint=fp;alias=a;relationship=r;transports=t==null?EnumSet.noneOf(TransportKind.class):EnumSet.copyOf(t);metadata=m==null?Collections.emptyMap():Collections.unmodifiableMap(new HashMap<>(m));} }

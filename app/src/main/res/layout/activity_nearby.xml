@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/app_bg">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Nearby Analyzer" android:textSize="24sp" android:textStyle="bold" android:textColor="@color/text_primary" />
+        <TextView android:id="@+id/nearbyScanState" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="در حال آماده‌سازی..." android:textColor="@color/text_secondary" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:orientation="horizontal">
+            <CheckBox android:id="@+id/filterTrusted" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Trusted" />
+            <CheckBox android:id="@+id/filterNearby" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="BLE" />
+            <CheckBox android:id="@+id/filterSameWifi" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Wi‑Fi" android:checked="true" />
+        </LinearLayout>
+        <TextView android:id="@+id/nearbyEmpty" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:text="هنوز دستگاه Mahyar پیدا نشده است." android:textColor="@color/text_secondary" android:gravity="center" />
+        <LinearLayout android:id="@+id/nearbyList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="10dp" />
+        <Button android:id="@+id/btnSendSelected" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="18dp" android:background="@drawable/bg_primary_button" android:text="ارسال کارت به انتخاب‌شده‌ها" android:textColor="#FFFFFF" android:textAllCaps="false" android:textStyle="bold" />
+        <Button android:id="@+id/btnNearbyClose" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="10dp" android:background="@drawable/bg_secondary_button" android:text="بستن" android:textAllCaps="false" />
+    </LinearLayout>
+</ScrollView>

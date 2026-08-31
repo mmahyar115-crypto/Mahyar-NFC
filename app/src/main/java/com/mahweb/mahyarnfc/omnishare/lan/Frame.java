@@ -1,0 +1,1 @@
+package com.mahweb.mahyarnfc.omnishare.lan; import java.util.Arrays; public final class Frame { public final byte type; public final byte[] body; public Frame(byte t,byte[]b){type=t;body=b==null?new byte[0]:Arrays.copyOf(b,b.length);} }

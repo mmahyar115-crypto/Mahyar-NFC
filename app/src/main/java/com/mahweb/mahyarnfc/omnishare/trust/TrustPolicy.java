@@ -1,0 +1,2 @@
+package com.mahweb.mahyarnfc.omnishare.trust;
+public final class TrustPolicy { private TrustPolicy(){} public static boolean canAutoReceive(TrustedDevice d,String id,String fp){return d!=null&&d.state==RelationshipState.TRUSTED&&d.autoReceive&&d.deviceId.equals(id)&&d.fingerprint.equals(fp);} public static boolean isBlocked(TrustedDevice d){return d!=null&&(d.state==RelationshipState.BLOCKED||d.state==RelationshipState.REVOKED);} }

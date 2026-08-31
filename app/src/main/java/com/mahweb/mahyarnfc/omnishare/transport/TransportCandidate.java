@@ -1,0 +1,1 @@
+package com.mahweb.mahyarnfc.omnishare.transport; import com.mahweb.mahyarnfc.omnishare.TransportKind; public final class TransportCandidate { public final TransportKind kind; public final int score; public final String reason; public TransportCandidate(TransportKind k,int s,String r){kind=k;score=s;reason=r;} }

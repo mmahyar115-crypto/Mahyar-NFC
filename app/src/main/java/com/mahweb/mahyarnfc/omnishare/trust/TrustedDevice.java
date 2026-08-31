@@ -1,0 +1,2 @@
+package com.mahweb.mahyarnfc.omnishare.trust;
+public final class TrustedDevice { public final String deviceId,fingerprint,alias; public final RelationshipState state; public final boolean autoReceive; public final long firstSeen,lastSeen; public TrustedDevice(String id,String fp,String a,RelationshipState s,boolean ar,long f,long l){deviceId=id;fingerprint=fp;alias=a;state=s;autoReceive=ar;firstSeen=f;lastSeen=l;} }

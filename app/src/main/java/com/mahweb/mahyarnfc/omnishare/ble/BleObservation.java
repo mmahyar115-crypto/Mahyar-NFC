@@ -1,0 +1,1 @@
+package com.mahweb.mahyarnfc.omnishare.ble; public final class BleObservation { public final String tokenHex; public final int rssi,capabilities; public final long seenAt; public BleObservation(String t,int r,long s,int c){tokenHex=t;rssi=r;seenAt=s;capabilities=c;} }

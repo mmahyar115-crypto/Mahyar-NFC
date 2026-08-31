@@ -1,0 +1,3 @@
+package com.mahweb.mahyarnfc.omnishare.lan;
+import java.io.*;
+public final class FrameCodec { private FrameCodec(){} public static void write(OutputStream out,byte type,byte[]body)throws IOException{byte[]b=body==null?new byte[0]:body;int len=1+b.length;if(len>LanProtocol.MAX_FRAME_BYTES)throw new IOException("frame too large");DataOutputStream d=new DataOutputStream(out);d.writeInt(len);d.writeByte(type);d.write(b);d.flush();} public static Frame read(InputStream in)throws IOException{DataInputStream d=new DataInputStream(in);int len=d.readInt();if(len<1||len>LanProtocol.MAX_FRAME_BYTES)throw new IOException("invalid frame length");byte type=d.readByte();byte[]body=new byte[len-1];d.readFully(body);return new Frame(type,body);} }

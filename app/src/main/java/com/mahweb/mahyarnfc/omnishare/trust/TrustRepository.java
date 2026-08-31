@@ -1,0 +1,7 @@
+package com.mahweb.mahyarnfc.omnishare.trust;
+import android.content.*; import org.json.*; import java.util.*;
+public final class TrustRepository implements TrustLookup { private final SharedPreferences p; public TrustRepository(Context c){p=c.getApplicationContext().getSharedPreferences("mahyar_omnishare_trust_v1",Context.MODE_PRIVATE);} private String k(String id){return "device_"+id;} public TrustedDevice get(String id){String s=p.getString(k(id),null);if(s==null)return null;try{JSONObject o=new JSONObject(s);return new TrustedDevice(id,o.optString("fp"),o.optString("alias"),RelationshipState.valueOf(o.optString("state","UNKNOWN")),o.optBoolean("auto",false),o.optLong("first",0),o.optLong("last",0));}catch(Exception e){return null;}}
+ public void put(TrustedDevice d){try{JSONObject o=new JSONObject();o.put("fp",d.fingerprint).put("alias",d.alias).put("state",d.state.name()).put("auto",d.autoReceive).put("first",d.firstSeen).put("last",d.lastSeen);p.edit().putString(k(d.deviceId),o.toString()).apply();}catch(JSONException e){throw new IllegalStateException(e);}}
+ public void revoke(String id){TrustedDevice d=get(id);if(d!=null)put(new TrustedDevice(id,d.fingerprint,d.alias,RelationshipState.REVOKED,false,d.firstSeen,System.currentTimeMillis()));}
+ public void block(String id,String fp,String alias){TrustedDevice d=get(id);long now=System.currentTimeMillis();put(new TrustedDevice(id,fp,alias,RelationshipState.BLOCKED,false,d==null?now:d.firstSeen,now));}
+}

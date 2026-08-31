@@ -1,0 +1,3 @@
+package com.mahweb.mahyarnfc.omnishare.nearby;
+import android.content.*; import android.util.Base64; import com.mahweb.mahyarnfc.omnishare.crypto.CryptoBox;
+public final class DiscoverySecretStore { private DiscoverySecretStore(){} public static byte[] get(Context c){SharedPreferences p=c.getApplicationContext().getSharedPreferences("mahyar_omnishare_discovery_v1",Context.MODE_PRIVATE);String s=p.getString("secret",null);if(s==null){byte[]b=CryptoBox.randomBytes(32);s=Base64.encodeToString(b,Base64.NO_WRAP|Base64.URL_SAFE);p.edit().putString("secret",s).apply();return b;}return Base64.decode(s,Base64.NO_WRAP|Base64.URL_SAFE);} }
