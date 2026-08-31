@@ -1,0 +1,3 @@
+Upload ALL .py files in this folder directly into the existing GitHub folder: scripts/
+Do not upload this ZIP itself.
+Suggested commit: Restore missing v4 verification scripts
