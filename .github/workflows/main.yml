@@ -1,9 +1,10 @@
-name: Build Mahyar NFC Universal APK
+name: Build Mahyar NFC v4 OmniShare Gate C
 
 on:
   push:
     branches:
       - main
+      - omnishare-v4-gate-c
   workflow_dispatch:
 
 permissions:
@@ -11,26 +12,21 @@ permissions:
 
 jobs:
   build:
-    name: Test and build Mahyar NFC v3 Universal
+    name: Test and build Mahyar NFC v4 Gate C
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-
+    timeout-minutes: 30
     defaults:
       run:
-        working-directory: MahyarNFC-v3.0.0-GitHub-Ready
-
+        working-directory: MahyarNFC-v4.0.0-GitHub-Ready
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
-      - name: Run universal protocol tests
-        shell: bash
+      - name: Run v3 NFC regressions
         run: |
           python3 scripts/run_logic_tests.py
           python3 scripts/run_nfc_state_tests.py
@@ -43,33 +39,31 @@ jobs:
           python3 scripts/verify_universal_hce_contract.py
           python3 scripts/verify_universal_send_contract.py
           python3 scripts/verify_card_bridge.py
+      - name: Run OmniShare Gate C tests
+        run: |
+          python3 scripts/run_lan_tests.py
+          python3 scripts/verify_v4_gate_c.py
           python3 scripts/verify_project.py
-
       - name: Set up Gradle 9.5
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "9.5.0"
-
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-
       - name: Install Android SDK packages
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
-
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug --stacktrace
-
       - name: Verify APK
         run: |
           test -s app/build/outputs/apk/debug/app-debug.apk
           sha256sum app/build/outputs/apk/debug/app-debug.apk | tee app/build/outputs/apk/debug/app-debug.apk.sha256
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: MahyarNFC-v3.0.0-universal-debug-apk
+          name: MahyarNFC-v4.0.0-omnishare-gate-c-debug-apk
           path: |
-            MahyarNFC-v3.0.0-GitHub-Ready/app/build/outputs/apk/debug/app-debug.apk
-            MahyarNFC-v3.0.0-GitHub-Ready/app/build/outputs/apk/debug/app-debug.apk.sha256
+            MahyarNFC-v4.0.0-GitHub-Ready/app/build/outputs/apk/debug/app-debug.apk
+            MahyarNFC-v4.0.0-GitHub-Ready/app/build/outputs/apk/debug/app-debug.apk.sha256
           if-no-files-found: error
           retention-days: 14
