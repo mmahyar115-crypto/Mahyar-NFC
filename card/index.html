@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0f6bff" />
+  <title>Mahyar NFC — کارت تماس</title>
+  <style>
+    :root{color-scheme:light;--bg:#f4f7fb;--card:#fff;--text:#171b24;--muted:#697386;--primary:#0f6bff;--ok:#14915e;--border:#e3e8f1}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;background:linear-gradient(160deg,#eef4ff 0,#f7f9fc 45%,#fff 100%);color:var(--text);min-height:100dvh}
+    main{max-width:540px;margin:0 auto;padding:24px 18px calc(32px + env(safe-area-inset-bottom))}
+    .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}.logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(145deg,#0f6bff,#5948ff);color:#fff;display:grid;place-items:center;font-weight:800}.brand b{font-size:18px}.brand span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+    .hero{border-radius:26px;background:linear-gradient(145deg,#0e5fe8,#5048e9);padding:26px;color:#fff;box-shadow:0 18px 50px rgba(25,75,180,.22)}
+    .avatar{width:72px;height:72px;border-radius:24px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:30px;font-weight:800;border:1px solid rgba(255,255,255,.25)}
+    h1{font-size:26px;margin:18px 0 5px}.role{color:#e7edff;line-height:1.8;font-size:14px}.hero .phone{direction:ltr;text-align:right;margin-top:15px;font-size:17px;font-weight:700}
+    .panel{margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:18px;box-shadow:0 10px 35px rgba(23,27,36,.05)}
+    .row{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid #eef1f6}.row:last-child{border-bottom:0}.label{color:var(--muted);font-size:12px;min-width:72px}.value{font-size:14px;word-break:break-word;direction:ltr;text-align:right;flex:1}.value.fa{direction:rtl}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}.btn{appearance:none;border:0;border-radius:15px;padding:14px 12px;font:inherit;font-weight:700;cursor:pointer;text-align:center;text-decoration:none}.primary{grid-column:1/-1;background:var(--primary);color:#fff}.secondary{background:#eef4ff;color:#0c5bdd}.ghost{background:#f2f4f7;color:#3c4555}.ok{background:#eaf8f2;color:var(--ok)}
+    .note{font-size:12px;color:var(--muted);line-height:1.8;margin-top:16px;text-align:center}.error{display:none;margin-top:18px;background:#fff0ee;color:#b33b2e;border:1px solid #f3c7c0;padding:16px;border-radius:16px;line-height:1.8}.hidden{display:none!important}
+    @media(max-width:380px){.actions{grid-template-columns:1fr}.primary{grid-column:auto}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="brand"><div class="logo">M</div><div><b>Mahyar NFC</b><span>کارت تماس Universal</span></div></div>
+  <section id="card" class="hidden">
+    <div class="hero">
+      <div id="avatar" class="avatar">M</div>
+      <h1 id="name">مخاطب</h1>
+      <div id="role" class="role"></div>
+      <div id="phoneHero" class="phone"></div>
+    </div>
+    <div id="details" class="panel"></div>
+    <div class="actions">
+      <a id="save" class="btn primary" href="#">ذخیره مخاطب</a>
+      <a id="call" class="btn ok" href="#">تماس</a>
+      <button id="copy" class="btn ghost" type="button">کپی شماره</button>
+      <a id="email" class="btn secondary hidden" href="#">ایمیل</a>
+      <a id="website" class="btn secondary hidden" href="#" target="_blank" rel="noopener">وب‌سایت</a>
+      <button id="share" class="btn ghost hidden" type="button">اشتراک vCard</button>
+    </div>
+    <div class="note">اطلاعات این کارت از بخش Fragment آدرس خوانده می‌شود و این صفحه هیچ دیتابیس یا ابزار Analytics ندارد.</div>
+  </section>
+  <div id="error" class="error">اطلاعات کارت معتبر نیست یا لینک ناقص است. از فرستنده بخواهید دوباره کارت را با Mahyar NFC ارسال کند.</div>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const clean = v => typeof v === 'string' ? v.trim() : '';
+  const token = location.hash.startsWith('#c=') ? location.hash.slice(3) : '';
+  function decodeToken(v){
+    let b64 = v.replace(/-/g,'+').replace(/_/g,'/');
+    while (b64.length % 4) b64 += '=';
+    const bin = atob(b64);
+    const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+  }
+  function vesc(v){return clean(v).replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/;/g,'\\;').replace(/,/g,'\\,');}
+  function vcard(p){
+    const lines=['BEGIN:VCARD','VERSION:3.0'];
+    if(p.n) lines.push('FN:'+vesc(p.n));
+    if(p.c) lines.push('ORG:'+vesc(p.c));
+    if(p.j) lines.push('TITLE:'+vesc(p.j));
+    if(p.p) lines.push('TEL;TYPE=CELL:'+vesc(p.p));
+    if(p.e) lines.push('EMAIL:'+vesc(p.e));
+    if(p.w) lines.push('URL:'+vesc(p.w));
+    const notes=[]; if(p.i) notes.push('Instagram: '+p.i); if(p.t) notes.push('Telegram: '+p.t);
+    if(notes.length) lines.push('NOTE:'+vesc(notes.join(' | ')));
+    lines.push('END:VCARD'); return lines.join('\r\n');
+  }
+  function detail(label,value,fa=false){
+    value=clean(value); if(!value) return;
+    const row=document.createElement('div'); row.className='row';
+    const l=document.createElement('div'); l.className='label'; l.textContent=label;
+    const val=document.createElement('div'); val.className='value'+(fa?' fa':''); val.textContent=value;
+    row.append(l,val); $('details').append(row);
+  }
+  try{
+    if(!token) throw new Error('missing');
+    const p=decodeToken(token);
+    if(!p || clean(p.n)==='' || clean(p.p)==='') throw new Error('invalid');
+    p.n=clean(p.n); p.p=clean(p.p); p.j=clean(p.j); p.c=clean(p.c); p.e=clean(p.e); p.w=clean(p.w); p.i=clean(p.i); p.t=clean(p.t);
+    $('name').textContent=p.n; $('avatar').textContent=p.n.charAt(0).toUpperCase(); $('phoneHero').textContent=p.p;
+    $('role').textContent=[p.j,p.c].filter(Boolean).join(' • ');
+    detail('موبایل',p.p); detail('ایمیل',p.e); detail('وب‌سایت',p.w); detail('Instagram',p.i); detail('Telegram',p.t);
+    $('call').href='tel:'+p.p.replace(/\s+/g,'');
+    if(p.e){$('email').href='mailto:'+encodeURIComponent(p.e);$('email').classList.remove('hidden')}
+    if(p.w){$('website').href=/^https?:\/\//i.test(p.w)?p.w:'https://'+p.w;$('website').classList.remove('hidden')}
+    const vc=vcard(p); const blob=new Blob([vc],{type:'text/vcard;charset=utf-8'}); const blobUrl=URL.createObjectURL(blob);
+    $('save').href=blobUrl; $('save').download=(p.n||'contact').replace(/[\\/:*?"<>|]/g,'-')+'.vcf';
+    $('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(p.p);$('copy').textContent='شماره کپی شد'}catch(_){prompt('کپی شماره',p.p)}});
+    if(typeof File==='function' && navigator.share && navigator.canShare){
+      const file=new File([vc],$('save').download,{type:'text/vcard'});
+      if(navigator.canShare({files:[file]})){$('share').classList.remove('hidden');$('share').onclick=()=>navigator.share({files:[file],title:p.n}).catch(()=>{});}
+    }
+    $('card').classList.remove('hidden');
+    window.addEventListener('pagehide',()=>URL.revokeObjectURL(blobUrl),{once:true});
+  }catch(e){$('error').style.display='block'}
+})();
+</script>
+</body>
+</html>
