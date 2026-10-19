@@ -310,6 +310,16 @@ public class MainActivity extends Activity implements NfcReader.Listener, NfcSha
         btnToggleShare.setOnClickListener(v -> {
             boolean active = !ProfileRepository.isShareEnabled(this);
             if (active) {
+                try {
+                    // Prebuild both APDU payloads before a reader approaches this phone.
+                    NfcPreparedPayloads.prepare(this);
+                } catch (Exception e) {
+                    ProfileRepository.setShareEnabled(this, false);
+                    statusTitle.setText("آماده‌سازی کارت NFC ناموفق بود");
+                    statusTitle.setTextColor(getColor(R.color.danger));
+                    statusDescription.setText("اطلاعات پروفایل را بررسی کنید و دوباره تلاش کنید.");
+                    return;
+                }
                 ProfileRepository.setShareEnabled(this, true);
                 boolean preferred = hceSessionController.activate(this);
                 if (!preferred) {

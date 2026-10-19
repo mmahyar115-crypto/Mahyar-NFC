@@ -5,6 +5,8 @@ import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -21,6 +23,7 @@ public final class NfcReader implements NfcAdapter.ReaderCallback {
     private final Activity activity;
     private final NfcAdapter adapter;
     private final Listener listener;
+    private final NfcReadGate readGate = new NfcReadGate();
 
     public NfcReader(Activity activity, Listener listener) {
         this.activity = activity;
@@ -51,10 +54,17 @@ public final class NfcReader implements NfcAdapter.ReaderCallback {
         int flags = NfcAdapter.FLAG_READER_NFC_A
                 | NfcAdapter.FLAG_READER_NFC_B
                 | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK;
-        adapter.enableReaderMode(activity, this, flags, options);
+        readGate.start();
+        try {
+            adapter.enableReaderMode(activity, this, flags, options);
+        } catch (RuntimeException e) {
+            readGate.stop();
+            listener.onError("حالت دریافت NFC فعال نشد. دوباره تلاش کنید.");
+        }
     }
 
     public void stop() {
+        readGate.stop();
         if (adapter != null) {
             try {
                 adapter.disableReaderMode(activity);
@@ -65,10 +75,14 @@ public final class NfcReader implements NfcAdapter.ReaderCallback {
 
     @Override
     public void onTagDiscovered(Tag tag) {
-        runUi(listener::onReading);
+        final int session = readGate.tryBegin();
+        if (session == NfcReadGate.REJECTED) return;
+        final long startedNs = SystemClock.elapsedRealtimeNanos();
+        runUi(session, listener::onReading);
         IsoDep isoDep = IsoDep.get(tag);
         if (isoDep == null) {
-            runUi(() -> listener.onError("دستگاه مقابل از پروتکل NFC موردنیاز پشتیبانی نکرد."));
+            runUi(session, () -> listener.onError("دستگاه مقابل از پروتکل NFC موردنیاز پشتیبانی نکرد."));
+            readGate.finish(session);
             return;
         }
 
@@ -106,26 +120,36 @@ public final class NfcReader implements NfcAdapter.ReaderCallback {
                 if (chunk.length == 0) {
                     throw new IllegalStateException("بخشی از اطلاعات NFC دریافت نشد.");
                 }
-                int remaining = totalLength - offset;
-                int take = Math.min(chunk.length, remaining);
+                int take = Math.min(chunk.length, totalLength - offset);
                 out.write(chunk, 0, take);
                 offset += take;
             }
 
             Profile profile = Profile.fromJson(new String(out.toByteArray(), StandardCharsets.UTF_8));
-            runUi(() -> listener.onProfile(profile));
+            if (readGate.markSuccess(session)) {
+                if (BuildConfig.DEBUG) {
+                    long elapsedMs = (SystemClock.elapsedRealtimeNanos() - startedNs) / 1_000_000L;
+                    Log.d("MahyarNFC", "Direct NFC read completed: elapsedMs=" + elapsedMs
+                            + ", bytes=" + totalLength);
+                }
+                runUi(session, () -> listener.onProfile(profile));
+            }
         } catch (Exception e) {
-            runUi(() -> listener.onError(e.getMessage() == null ? "خطا در خواندن NFC" : e.getMessage()));
+            runUi(session, () -> listener.onError(
+                    e.getMessage() == null ? "خطا در خواندن NFC" : e.getMessage()));
         } finally {
             try {
                 isoDep.close();
             } catch (Exception ignored) {
             }
+            readGate.finish(session);
         }
     }
 
-    private void runUi(Runnable r) {
-        activity.runOnUiThread(r);
+    private void runUi(int session, Runnable callback) {
+        activity.runOnUiThread(() -> {
+            if (readGate.isCurrent(session)) callback.run();
+        });
     }
 
     private static String statusWord(byte[] response) {
