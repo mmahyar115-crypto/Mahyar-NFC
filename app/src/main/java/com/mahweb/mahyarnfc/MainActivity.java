@@ -232,22 +232,52 @@ public class MainActivity extends Activity implements NfcReader.Listener, NfcSha
             Toast.makeText(this, "ابتدا نام و شماره موبایل را کامل کنید", Toast.LENGTH_LONG).show();
             return;
         }
+        final String onlineUrl;
         try {
-            ImageView image = new ImageView(this);
-            int size = Math.min(getResources().getDisplayMetrics().widthPixels - dp(64), dp(700));
-            image.setImageBitmap(QrUtil.create(p.toVCard(), size));
-            image.setPadding(dp(12), dp(12), dp(12), dp(12));
-            LinearLayout wrap = new LinearLayout(this);
-            wrap.setOrientation(LinearLayout.VERTICAL);
-            wrap.setPadding(dp(16), dp(8), dp(16), dp(16));
-            TextView hint = dialogText("دوربین گوشی مقابل را روی QR بگیرید", 14, false);
-            hint.setTextColor(getColor(R.color.text_secondary));
-            wrap.addView(hint);
-            wrap.addView(image, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            new AlertDialog.Builder(this).setTitle(p.name).setView(wrap).setPositiveButton("بستن", null).show();
-        } catch (WriterException e) {
-            Toast.makeText(this, "ساخت QR ناموفق بود", Toast.LENGTH_SHORT).show();
+            onlineUrl = UniversalCardPayload.bridgeUrl(p, UniversalCardPayload.DEFAULT_BRIDGE_BASE_URL);
+        } catch (RuntimeException e) {
+            Toast.makeText(this, "ساخت لینک کارت ناموفق بود", Toast.LENGTH_SHORT).show();
+            return;
         }
+        LinearLayout wrap = new LinearLayout(this);
+        wrap.setOrientation(LinearLayout.VERTICAL);
+        wrap.setPadding(dp(16), dp(8), dp(16), dp(16));
+        int size = Math.min(getResources().getDisplayMetrics().widthPixels - dp(64), dp(700));
+        ImageView qr = new ImageView(this);
+        qr.setPadding(dp(12), dp(12), dp(12), dp(12));
+        TextView hint = dialogText("", 14, false);
+        hint.setTextColor(getColor(R.color.text_secondary));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        Button online = new Button(this);
+        online.setText("QR کارت آنلاین");
+        Button offline = new Button(this);
+        offline.setText("QR مخاطب آفلاین");
+        wrap.addView(online);
+        wrap.addView(offline);
+        wrap.addView(hint);
+        wrap.addView(qr, lp);
+        final Runnable showOnline = () -> {
+            try {
+                qr.setImageBitmap(QrUtil.create(onlineUrl, size));
+                hint.setText("با دوربین گوشی اسکن کنید؛ اینترنت برای بازکردن کارت لازم است.");
+            } catch (WriterException e) {
+                hint.setText("ساخت QR آنلاین ناموفق بود.");
+            }
+        };
+        final Runnable showOffline = () -> {
+            try {
+                qr.setImageBitmap(QrUtil.create(p.toVCard(), size));
+                hint.setText("اطلاعات مخاطب داخل QR است و برای اسکن آن اینترنت لازم نیست.");
+            } catch (WriterException e) {
+                hint.setText("ساخت QR آفلاین ناموفق بود.");
+            }
+        };
+        online.setOnClickListener(v -> showOnline.run());
+        offline.setOnClickListener(v -> showOffline.run());
+        showOnline.run();
+        new AlertDialog.Builder(this).setTitle(p.name).setView(wrap)
+                .setPositiveButton("بستن", null).show();
     }
 
     private void showSendScreen() {
