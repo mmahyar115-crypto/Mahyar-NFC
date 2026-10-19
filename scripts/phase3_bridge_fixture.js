@@ -1,0 +1,11 @@
+'use strict';
+const assert = require('node:assert/strict');
+const url = new URL(process.argv[2]);
+assert.equal(url.origin + url.pathname, 'https://mahyarmolavi.ir/nfc/');
+assert.match(url.hash, /^#c=[A-Za-z0-9_-]+$/);
+let token = url.hash.slice(3).replace(/-/g,'+').replace(/_/g,'/');
+while(token.length%4)token+='=';
+const raw = Buffer.from(token,'base64').toString('utf8');
+const p=JSON.parse(raw);
+for(const key of ['v','n','p','j','c','e','w','i','t'])assert.ok(Object.hasOwn(p,key));
+console.log(JSON.stringify(p));
