@@ -1,6 +1,7 @@
 name: Build Mahyar NFC v4 OmniShare Gate C
 
 on:
+  pull_request:
   push:
     branches:
       - main
@@ -38,6 +39,7 @@ jobs:
           python3 scripts/verify_universal_hce_contract.py
           python3 scripts/verify_universal_send_contract.py
           python3 scripts/verify_card_bridge.py
+          python3 scripts/verify_qr_modes.py
 
       - name: Run OmniShare Gate C tests
         run: |
@@ -50,11 +52,14 @@ jobs:
         with:
           gradle-version: "9.5.0"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install Android SDK packages
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -n 1)"
+          test -n "$SDKMANAGER"
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Run JVM unit tests
+        run: gradle --no-daemon :app:testDebugUnitTest --stacktrace
 
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug --stacktrace
