@@ -49,6 +49,7 @@ public final class ProfileRepository {
                 .putString(K_TELEGRAM, r.telegram)
                 .putInt(K_PROFILE_SCHEMA, 2)
                 .apply();
+        NfcPreparedPayloads.clear();
     }
 
     public static boolean isOnboardingCompleted(Context c) {
@@ -76,5 +77,6 @@ public final class ProfileRepository {
 
     public static void setShareEnabled(Context c, boolean enabled) {
         prefs(c).edit().putBoolean(K_SHARE, enabled).apply();
+        if (!enabled) NfcPreparedPayloads.clear();
     }
 }

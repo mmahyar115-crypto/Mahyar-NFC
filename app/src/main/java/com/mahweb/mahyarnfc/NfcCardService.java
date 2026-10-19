@@ -3,9 +3,6 @@ package com.mahweb.mahyarnfc;
 import android.nfc.cardemulation.HostApduService;
 import android.os.Bundle;
 
-import org.json.JSONException;
-
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -54,18 +51,17 @@ public class NfcCardService extends HostApduService {
 
     private byte[] beginNdefSession(byte[] selectApdu) {
         try {
-            Profile p = ProfileRepository.load(this);
-            if (!ProfileValidator.isProfileReady(p)) {
+            NfcPreparedPayloads.Snapshot snapshot = NfcPreparedPayloads.getOrPrepare(this);
+            if (snapshot.ndefMessage == null) {
                 resetSession();
                 return NfcProtocol.SW_CONDITIONS;
             }
-            byte[] ndef = UniversalCardPayload.buildNdefMessage(p, UniversalCardPayload.DEFAULT_BRIDGE_BASE_URL);
-            type4Session = new Type4NdefProtocol.Session(ndef);
+            type4Session = new Type4NdefProtocol.Session(snapshot.ndefMessage);
             currentPayload = new byte[0];
             mode = MODE_NDEF;
             NfcShareEvents.notifyReaderDetected(NfcShareEvents.Protocol.UNIVERSAL_NDEF);
             return type4Session.process(selectApdu);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             resetSession();
             return NfcProtocol.SW_CONDITIONS;
         }
@@ -73,23 +69,15 @@ public class NfcCardService extends HostApduService {
 
     private byte[] beginPrivateSession() {
         try {
-            Profile p = ProfileRepository.load(this);
-            if (!ProfileValidator.isProfileReady(p)) {
-                resetSession();
-                return NfcProtocol.SW_CONDITIONS;
-            }
-            currentPayload = p.toJson().toString().getBytes(StandardCharsets.UTF_8);
-            if (currentPayload.length == 0 || currentPayload.length > 65535) {
-                resetSession();
-                return NfcProtocol.SW_NOT_FOUND;
-            }
+            NfcPreparedPayloads.Snapshot snapshot = NfcPreparedPayloads.getOrPrepare(this);
+            currentPayload = snapshot.privatePayload;
             type4Session = null;
             mode = MODE_PRIVATE;
             NfcShareEvents.notifyReaderDetected(NfcShareEvents.Protocol.MAHYAR_DIRECT);
             return NfcProtocol.selectResponse(currentPayload.length);
-        } catch (JSONException e) {
+        } catch (Exception e) {
             resetSession();
-            return NfcProtocol.SW_NOT_FOUND;
+            return NfcProtocol.SW_CONDITIONS;
         }
     }
 
