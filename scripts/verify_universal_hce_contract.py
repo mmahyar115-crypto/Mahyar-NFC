@@ -3,7 +3,8 @@ import sys
 ROOT=Path(__file__).resolve().parents[1]
 checks={
  'app/src/main/res/xml/apduservice.xml':['F0010203040506','D2760000850101'],
- 'app/src/main/java/com/mahweb/mahyarnfc/NfcCardService.java':['Type4NdefProtocol.isSelectNdefApplication','UniversalCardPayload.buildNdefMessage','NfcProtocol.SELECT_APDU','MODE_NDEF','MODE_PRIVATE'],
+ 'app/src/main/java/com/mahweb/mahyarnfc/NfcCardService.java':['Type4NdefProtocol.isSelectNdefApplication','NfcPreparedPayloads.getOrPrepare','NfcProtocol.SELECT_APDU','MODE_NDEF','MODE_PRIVATE'],
+ 'app/src/main/java/com/mahweb/mahyarnfc/NfcPreparedPayloads.java':['UniversalCardPayload.buildNdefMessage','ProfileRepository.load','static synchronized void clear'],
  'app/src/main/java/com/mahweb/mahyarnfc/UniversalCardPayload.java':['https://mahyarmolavi.ir/nfc/'],
 }
 errors=[]
