@@ -127,7 +127,7 @@ public final class NfcReader implements NfcAdapter.ReaderCallback {
 
             Profile profile = Profile.fromJson(new String(out.toByteArray(), StandardCharsets.UTF_8));
             if (readGate.markSuccess(session)) {
-                if (BuildConfig.DEBUG) {
+                if ((activity.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
                     long elapsedMs = (SystemClock.elapsedRealtimeNanos() - startedNs) / 1_000_000L;
                     Log.d("MahyarNFC", "Direct NFC read completed: elapsedMs=" + elapsedMs
                             + ", bytes=" + totalLength);
